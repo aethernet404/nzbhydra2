@@ -8,9 +8,9 @@ Before implementation, read:
 
 1. `/docs/frontend-migration/README.md`
 2. Your assigned `/docs/frontend-migration/tasks/FM-*.md`
-3. Only the ADRs and registry records linked by that task
+3. The ADRs and registry records linked by that task
 
-Do not infer migration requirements from conversation history.
+Do not infer migration requirements from conversation history. The linked files are mandatory starting points, not a restriction on repository reads. `Files Allowed To Modify` in the task is the write boundary.
 
 ## Boundaries
 
@@ -25,6 +25,13 @@ Do not infer migration requirements from conversation history.
 - Keep backend DTO data separate from UI state.
 - Never edit generated API types or production bundles manually.
 
+## Dependencies And Toolchain
+
+- Follow the runtime and development dependency policy in `/docs/frontend-migration/README.md`.
+- Use `dependencies` only for packages required by the shipped browser application. Build, lint, formatting, test, validation, and code-generation packages belong in `devDependencies`.
+- Treat the versions declared by the project as authoritative. Do not downgrade dependencies or weaken configuration for an older locally installed Node or npm.
+- Record dependency decisions and actual Node/npm versions in the structured handoff.
+
 ## Code Quality
 
 - Use strict TypeScript and avoid `any`; validate untrusted runtime data at boundaries.
@@ -36,4 +43,5 @@ Do not infer migration requirements from conversation history.
 
 ## Verification
 
-Run the focused tests listed by the task, followed by the available frontend typecheck, lint, unit-test, and build commands. Record concise results in the task handoff. An implementation is handed off as `review`, not `done`.
+Run the exact focused and project-wide commands listed by the task. Do not weaken or suppress checks. Use the structured handoff template, record each command and result, and confirm only allowed files were modified. An implementation is
+handed off as `review`, not `done`.
