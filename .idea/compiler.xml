@@ -89,7 +89,10 @@
     </option>
   </component>
   <component name="TypeScriptCompiler">
+    <option name="nodeInterpreterTextField" value="wsl://Ubuntu@/usr/bin/node" />
     <option name="recompileOnChanges" value="true" />
     <option name="scopeName" value="All Places" />
+    <option name="typeScriptServiceDirectory" value="$PROJECT_DIR$/core/ui-react/node_modules/typescript" />
+    <option name="versionType" value="SERVICE_DIRECTORY" />
   </component>
 </project>
