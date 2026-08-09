@@ -3,25 +3,6 @@ description: Coordinates an inclusive range of FM frontend migration tasks throu
 mode: primary
 model: openai/gpt-5.6-terra
 variant: low
-permission:
-  edit:
-    "*": deny
-    docs/frontend-migration/STATUS.md: allow
-    docs/frontend-migration/tasks/FM-*.md: allow
-  bash:
-    "*": deny
-    "git status*": allow
-    "git diff*": allow
-    "git log*": allow
-    "git rev-parse*": allow
-    "git add *": allow
-    "git commit *": allow
-  task:
-    "*": deny
-    migration-implementer: allow
-    migration-reviewer: allow
-    migration-fixer: allow
-    migration-task-designer: allow
 ---
 
 Coordinate only the inclusive FM range requested by the caller.
