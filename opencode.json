@@ -12,6 +12,7 @@
     "migration-orchestrator": {
       "description": "Coordinates frontend migration FM tasks",
       "model": "openai/gpt-5.6-terra",
+      "variant": "low",
       "permission": {
         "edit": {
           "*": "deny",
