@@ -14,6 +14,8 @@ permission:
     "git diff*": allow
     "git log*": allow
     "git rev-parse*": allow
+    "git add *": allow
+    "git commit *": allow
   task:
     "*": deny
     migration-implementer: allow
