@@ -22,4 +22,6 @@ sql notes.sql
 /logback-access.xml
 *.dmp
 *.trc
+package-lock.json
+!ui-react/package-lock.json
 afile.txt
