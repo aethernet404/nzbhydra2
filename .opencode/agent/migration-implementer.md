@@ -24,3 +24,23 @@ Run all required verification, inspect the complete task-owned diff, update the 
 contract, prohibited-write, destructive-action, concurrent-change, or unavailable-infrastructure issue that cannot be resolved conventionally.
 
 Do not review your own implementation and do not commit or push unless repository instructions explicitly authorize it.
+
+## Git Attribution
+
+The orchestrator may provide:
+
+- the task baseline Git revision;
+- the pre-existing working-tree state;
+- paths identified as unrelated user changes.
+
+Treat these as authoritative for task attribution.
+
+Do not modify, revert, stage, discard, or otherwise incorporate unrelated pre-existing user changes.
+
+Do not consider an unrelated pre-existing change a task scope violation.
+
+Only changes introduced for the current FM task are subject to the task's Files Allowed To Modify rules.
+
+If task-attributable work overlaps with a pre-existing user modification and the changes cannot be safely separated, report the conflict rather than overwriting or reverting the user's work.
+
+Do not create Git commits. Task commits are owned by the orchestrator after independent review passes.
