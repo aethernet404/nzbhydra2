@@ -3,6 +3,7 @@
     {
       "type": "oracle.jdbc.provider.oson.OsonFactory"
     },
+    {"type": "org.springdoc.core.customizers.OperationCustomizerEditor"},
     {
       "type": "org.nzbhydra.auth.HydraWebAuthenticationDetails",
       "methods": [
