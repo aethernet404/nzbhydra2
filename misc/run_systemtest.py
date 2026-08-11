@@ -161,6 +161,17 @@ def find_command(*names: str) -> str:
     raise RuntimeError(f"Unable to find {' or '.join(names)} on PATH")
 
 
+def get_graalvm_environment() -> dict[str, str]:
+    graalvm_home = os.environ.get("GRAALVM_HOME")
+    if not graalvm_home:
+        raise RuntimeError("GRAALVM_HOME environment variable is not set")
+
+    environment = os.environ.copy()
+    environment["JAVA_HOME"] = graalvm_home
+    environment["PATH"] = str(Path(graalvm_home) / "bin") + os.pathsep + environment.get("PATH", "")
+    return environment
+
+
 def run_git(arguments: list[str], *, text: bool = True) -> subprocess.CompletedProcess:
     return subprocess.run(
         ["git", *arguments],
@@ -737,7 +748,7 @@ def run_gui_tests(
     return exit_code, command
 
 
-def run_locked(args: argparse.Namespace) -> int:
+def run_locked(args: argparse.Namespace, graalvm_environment: dict[str, str]) -> int:
     maven = find_command("mvn.cmd", "mvn") if os.name == "nt" else find_command("mvn")
     java = find_command("java.exe", "java") if os.name == "nt" else find_command("java")
     shell = find_command("cmd.exe", "cmd") if os.name == "nt" else find_command("bash")
@@ -808,7 +819,7 @@ def run_locked(args: argparse.Namespace) -> int:
     test_started_at = None
     coverage_dir = run_dir / "coverage"
     coverage_agent = None
-    common_environment = os.environ.copy()
+    common_environment = graalvm_environment
     common_environment.update(COMMON_ENVIRONMENT)
     core_environment = common_environment.copy()
     core_environment.update(CORE_ENVIRONMENT)
@@ -1048,6 +1059,7 @@ def run_locked(args: argparse.Namespace) -> int:
 
 def run() -> int:
     args = parse_args()
+    graalvm_environment = get_graalvm_environment()
     if args.startup_timeout <= 0:
         raise RuntimeError("--startup-timeout must be greater than zero")
     if args.skip_system_tests and not args.gui_tests:
@@ -1057,7 +1069,7 @@ def run() -> int:
 
     lock_file = acquire_run_lock()
     try:
-        return run_locked(args)
+        return run_locked(args, graalvm_environment)
     finally:
         release_run_lock(lock_file)
 

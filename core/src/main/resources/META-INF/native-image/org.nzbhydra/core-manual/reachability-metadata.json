@@ -5,6 +5,9 @@
     },
     {"type": "org.springdoc.core.customizers.OperationCustomizerEditor"},
     {
+      "type": "org.springdoc.core.customizers.GlobalOperationCustomizerEditor"
+    },
+    {
       "type": "org.nzbhydra.auth.HydraWebAuthenticationDetails",
       "methods": [
         {
