@@ -23,8 +23,10 @@ Read the task packet and all required migration context before implementation. R
 Mark the task `in_progress` before changing implementation files. Make routine, reversible implementation decisions without blocking unnecessarily. Follow the ADRs and declared project toolchain. Never downgrade dependencies to accommodate
 an outdated local environment, weaken linting, tests, type checking, build settings, or verification, skip required checks, or introduce an undocumented workaround.
 
-Run all required verification, inspect the complete task-owned diff, update the handoff truthfully, and mark the task `review` only when every acceptance criterion is satisfied. Report a genuine `BLOCKED` condition only for an architecture,
-contract, prohibited-write, destructive-action, concurrent-change, or unavailable-infrastructure issue that cannot be resolved conventionally.
+Run all required verification once against the final implementation, inspect the complete task-owned diff, update the handoff truthfully, and mark the task `review` only when every acceptance criterion is satisfied. Complete all
+non-verification handoff sections before expensive verification where practical. After verification, record the `Verification Basis` required by the handoff template. Do not change a task-owned implementation or test file after recording
+that basis; if you do, rerun every affected command and replace its evidence. Report a genuine `BLOCKED` condition only for an architecture, contract, prohibited-write, destructive-action, concurrent-change, or unavailable-infrastructure
+issue that cannot be resolved conventionally.
 
 Do not review your own implementation and do not commit or push unless repository instructions explicitly authorize it.
 

@@ -22,6 +22,7 @@ Invoke only:
 - An implementer or fixer never reviews its own work.
 - Every re-review uses a new reviewer.
 - Pass repository state, task contracts, baselines, handoffs, and review findings between agents—not their reasoning or conversation history.
+- Required verification runs once per relevant task-owned implementation revision. A review audits the recorded evidence and reruns an expensive command only under the reviewer's explicit evidence-reuse exceptions.
 - Never continue past a blocked or failed prerequisite.
 - Never begin work outside the requested range.
 - Allow at most two fix/review cycles per task.
@@ -43,6 +44,7 @@ For each task in dependency order:
    - the Git baseline;
    - pre-existing working-tree state;
    - the task-attributable repository state.
+   - the current handoff, including its `Verification Basis` and command-by-command evidence.
 
 Handle the review result as follows.
 
@@ -71,9 +73,10 @@ A scope refinement may clarify an existing outcome but must not broaden the task
 
 If the designer reports that resolution requires a new architecture, product, API-contract, or migration-boundary decision, stop and ask the human.
 
-Otherwise invoke a fresh `migration-fixer` with the required review findings and any designer outcome, then invoke a fresh reviewer.
+Otherwise invoke a fresh `migration-fixer` with the required review findings, the prior verification basis, and any designer outcome, then invoke a fresh reviewer. The fixer reruns only commands affected by its corrections and records which
+earlier evidence remains reusable.
 
-If no finding concerns the task specification, invoke the fixer directly and then a fresh reviewer.
+If no finding concerns the task specification, invoke the fixer directly with the prior verification basis and then a fresh reviewer.
 
 After two correction cycles, stop if substantive findings remain.
 

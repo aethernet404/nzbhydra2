@@ -85,6 +85,11 @@ Generated or temporary files count as modifications. Keep them inside allowed pa
 - A temporary workaround must be unavoidable, explicit in code or configuration where appropriate, and recorded under `Temporary Exceptions And Debt` with its reason, impact, removal condition, and follow-up.
 - Verification instructions must identify the working directory, exact command, and expected successful outcome. Record skipped or blocked commands as such; never imply they passed.
 - Before handoff, compare task-owned changed files with `Files Allowed To Modify` and explicitly confirm scope compliance.
+- Full system, browser, native, packaging, and similarly expensive verification runs once for each relevant task-owned implementation revision. The implementation handoff records command results and a verification basis that identifies the
+  tested files and their SHA-256 contents.
+- A fresh reviewer independently audits the verification basis, command result, test coverage, and current diff. Matching evidence is valid without rerunning the command. The reviewer reruns an expensive command only when evidence is
+  missing, failed, inconsistent, stale, nondeterministic, insufficient to establish critical behavior, or does not credibly cover the claimed criterion.
+- A correction reruns only commands affected by files it changes. Unchanged command evidence remains valid when the recorded verification basis still matches the task-owned implementation and test files.
 
 ## Registry Rules
 
