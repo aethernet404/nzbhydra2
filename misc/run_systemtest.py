@@ -19,6 +19,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, BinaryIO, TextIO
 
+import run_gui_systemtest
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 MISC_DIR = PROJECT_ROOT / "misc"
 HISTORY_DIR = MISC_DIR / ".systemtest-history"
@@ -258,7 +260,8 @@ def write_json(path: Path, value: dict[str, Any]) -> None:
 def write_hosts_file(run_dir: Path) -> Path:
     hosts_file = run_dir / "hosts"
     hosts_file.write_text(
-        "127.0.0.1 localhost mockserver core\n"
+        "127.0.0.1 localhost mockserver core radarr sonarr\n"
+        "94.16.110.194 api.tvmaze.com\n"
         "::1 localhost\n",
         encoding="utf-8",
     )
@@ -406,9 +409,13 @@ def ensure_ports_available(ports: list[int]) -> None:
     for port in ports:
         probe = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
-            exclusive_address_use = getattr(socket, "SO_EXCLUSIVEADDRUSE", None)
-            if exclusive_address_use is not None:
-                probe.setsockopt(socket.SOL_SOCKET, exclusive_address_use, 1)
+            if os.name == "nt":
+                exclusive_address_use = getattr(socket, "SO_EXCLUSIVEADDRUSE", None)
+                if exclusive_address_use is not None:
+                    probe.setsockopt(socket.SOL_SOCKET, exclusive_address_use, 1)
+            else:
+                # Do not mistake a just-closed test server's TIME_WAIT sockets for a listener.
+                probe.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             probe.bind(("127.0.0.1", port))
         except OSError as error:
             unavailable.append(f"127.0.0.1:{port} ({error})")
@@ -513,7 +520,7 @@ def start_native_core(
         "directstart",
         "--nobrowser",
         "--host",
-        "127.0.0.1",
+        "0.0.0.0",
         "--datafolder",
         str(data_dir),
     ]
@@ -797,8 +804,10 @@ def run_locked(args: argparse.Namespace, graalvm_environment: dict[str, str]) ->
     run_id = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
     run_dir = RUNS_DIR / run_id
     data_dir = run_dir / "data"
+    blackhole_dir = run_dir / "blackhole"
     run_dir.mkdir(parents=True)
     data_dir.mkdir()
+    blackhole_dir.mkdir()
     hosts_file = write_hosts_file(run_dir)
     history_file = HISTORY_RUNS_DIR / f"{run_id}.json"
     started_at = time.monotonic()
@@ -810,6 +819,7 @@ def run_locked(args: argparse.Namespace, graalvm_environment: dict[str, str]) ->
         "historyFile": str(history_file),
         "runDirectory": str(run_dir),
         "dataDirectory": str(data_dir),
+        "blackholeDirectory": str(blackhole_dir),
         "hostsFile": str(hosts_file),
         "requestedTest": args.test,
         "jvmCoverage": args.jvm_coverage,
@@ -837,6 +847,14 @@ def run_locked(args: argparse.Namespace, graalvm_environment: dict[str, str]) ->
     common_environment.update(COMMON_ENVIRONMENT)
     core_environment = common_environment.copy()
     core_environment.update(CORE_ENVIRONMENT)
+    supporting_services: list[str] = []
+    local_test_properties = {
+        "blackholeFolder.nzbhydra": str(blackhole_dir),
+        "blackholeFolder.testaccess": str(blackhole_dir),
+        "sonarr.host": "http://127.0.0.1:18989",
+        "radarr.host": "http://127.0.0.1:7878",
+        "nzbhydra.host.external": "http://host.docker.internal:5076",
+    } if os.name != "nt" else {}
 
     try:
         if changes:
@@ -889,7 +907,7 @@ def run_locked(args: argparse.Namespace, graalvm_environment: dict[str, str]) ->
                 "directstart",
                 "--nobrowser",
                 "--host",
-                "127.0.0.1",
+                "0.0.0.0",
                 "--datafolder",
                 str(data_dir),
             ]
@@ -902,7 +920,7 @@ def run_locked(args: argparse.Namespace, graalvm_environment: dict[str, str]) ->
                 "directstart",
                 "--nobrowser",
                 "--host",
-                "127.0.0.1",
+                "0.0.0.0",
                 "--datafolder",
                 str(data_dir),
             ]
@@ -953,6 +971,11 @@ def run_locked(args: argparse.Namespace, graalvm_environment: dict[str, str]) ->
             services,
             args.startup_timeout,
         )
+        if os.name != "nt":
+            supporting_services = run_gui_systemtest.start_supporting_services(
+                args.startup_timeout
+            )
+            run_record["supportingServices"] = supporting_services
 
         if not args.skip_system_tests:
             test_command = [
@@ -964,6 +987,9 @@ def run_locked(args: argparse.Namespace, graalvm_environment: dict[str, str]) ->
                 "-DtrimStackTrace=false",
                 f"-DdataFolder.testaccess={data_dir}",
             ]
+            test_command.extend(
+                f"-D{name}={value}" for name, value in local_test_properties.items()
+            )
             if args.test:
                 test_command.append(f"-Dtest={args.test}")
             test_environment = common_environment.copy()
@@ -973,6 +999,7 @@ def run_locked(args: argparse.Namespace, graalvm_environment: dict[str, str]) ->
             ]))
             run_record["status"] = "testing"
             run_record["testCommand"] = test_command
+            run_record["testProperties"] = local_test_properties
             write_json(history_file, run_record)
             test_started_at = time.time()
             test_duration_started = time.monotonic()
@@ -1014,6 +1041,10 @@ def run_locked(args: argparse.Namespace, graalvm_environment: dict[str, str]) ->
         cleanup_errors = []
         if args.jvm_coverage and coverage_agent is not None and len(services) > 1:
             request_core_shutdown(services[-1])
+        try:
+            run_gui_systemtest.stop_supporting_services(supporting_services)
+        except RuntimeError as error:
+            cleanup_errors.append(f"Unable to stop supporting services: {error}")
         for service in reversed(services):
             try:
                 stop_service(service)
@@ -1073,6 +1104,7 @@ def run_locked(args: argparse.Namespace, graalvm_environment: dict[str, str]) ->
         print(f"Run files: {run_dir}")
         if succeeded:
             shutil.rmtree(data_dir, ignore_errors=True)
+            shutil.rmtree(blackhole_dir, ignore_errors=True)
         else:
             print(f"Core data retained for diagnosis: {data_dir}")
     return exit_code
