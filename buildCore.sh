@@ -17,4 +17,4 @@ fi
 
 printf 'Using profiles: %s\n' "$profiles"
 HYDRA_NATIVE_BUILD=true mvn -pl org.nzbhydra:core -P"$profiles" clean native:compile \
-    -DskipTests -Dnative-maven-plugin.xmx=30
+    -DskipTests -Dnative-maven-plugin.xmx=16

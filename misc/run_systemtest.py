@@ -255,6 +255,16 @@ def write_json(path: Path, value: dict[str, Any]) -> None:
     temporary_path.replace(path)
 
 
+def write_hosts_file(run_dir: Path) -> Path:
+    hosts_file = run_dir / "hosts"
+    hosts_file.write_text(
+        "127.0.0.1 localhost mockserver core\n"
+        "::1 localhost\n",
+        encoding="utf-8",
+    )
+    return hosts_file
+
+
 def acquire_run_lock() -> BinaryIO:
     HISTORY_DIR.mkdir(parents=True, exist_ok=True)
     lock_file = (HISTORY_DIR / "runner.lock").open("a+b")
@@ -492,11 +502,13 @@ def supervise_restartable_core(service: Service, data_dir: Path) -> None:
 def start_native_core(
         core_exe: Path,
         data_dir: Path,
+        hosts_file: Path,
         environment: dict[str, str],
         log_path: Path,
 ) -> Service:
     base_command = [
         str(core_exe),
+        f"-Djdk.net.hosts.file={hosts_file}",
         "-DinternalApiKey=internalApiKey",
         "directstart",
         "--nobrowser",
@@ -787,6 +799,7 @@ def run_locked(args: argparse.Namespace, graalvm_environment: dict[str, str]) ->
     data_dir = run_dir / "data"
     run_dir.mkdir(parents=True)
     data_dir.mkdir()
+    hosts_file = write_hosts_file(run_dir)
     history_file = HISTORY_RUNS_DIR / f"{run_id}.json"
     started_at = time.monotonic()
     run_record: dict[str, Any] = {
@@ -797,6 +810,7 @@ def run_locked(args: argparse.Namespace, graalvm_environment: dict[str, str]) ->
         "historyFile": str(history_file),
         "runDirectory": str(run_dir),
         "dataDirectory": str(data_dir),
+        "hostsFile": str(hosts_file),
         "requestedTest": args.test,
         "jvmCoverage": args.jvm_coverage,
         "git": {
@@ -868,6 +882,7 @@ def run_locked(args: argparse.Namespace, graalvm_environment: dict[str, str]) ->
             core_command = [
                 java,
                 f"-javaagent:{coverage_agent}=destfile={execution_data},append=true,includes=org.nzbhydra.*",
+                f"-Djdk.net.hosts.file={hosts_file}",
                 "-DinternalApiKey=internalApiKey",
                 "-jar",
                 str(core_jar),
@@ -916,6 +931,7 @@ def run_locked(args: argparse.Namespace, graalvm_environment: dict[str, str]) ->
             core_service = start_native_core(
                 source_core_exe,
                 data_dir,
+                hosts_file,
                 core_environment,
                 run_dir / "core.log",
             )
@@ -950,12 +966,17 @@ def run_locked(args: argparse.Namespace, graalvm_environment: dict[str, str]) ->
             ]
             if args.test:
                 test_command.append(f"-Dtest={args.test}")
+            test_environment = common_environment.copy()
+            test_environment["JAVA_TOOL_OPTIONS"] = " ".join(filter(None, [
+                test_environment.get("JAVA_TOOL_OPTIONS"),
+                f"-Djdk.net.hosts.file={hosts_file}",
+            ]))
             run_record["status"] = "testing"
             run_record["testCommand"] = test_command
             write_json(history_file, run_record)
             test_started_at = time.time()
             test_duration_started = time.monotonic()
-            exit_code = run_command(test_command, run_dir / "system-test.log", common_environment)
+            exit_code = run_command(test_command, run_dir / "system-test.log", test_environment)
             run_record["testDurationSeconds"] = round(
                 time.monotonic() - test_duration_started, 3
             )
