@@ -41,7 +41,16 @@ Task states are `planned`, `ready`, `in_progress`, `review`, `blocked`, and `don
 8. A fresh agent reviews the change against the task and linked feature records.
 9. The coordinator marks the task `done` after review findings are resolved.
 
-Only the coordinator creates tasks or changes task dependencies. Implementation agents add a follow-up proposal to their handoff instead of expanding scope.
+Only the migration task designer creates or refines task packets and dependencies. The coordinator promotes and completes task lifecycle states. Implementation agents add a follow-up proposal to their handoff instead of expanding scope.
+
+## Creating Task Batches
+
+Use `/create-next-tasks <count>` to create the next consecutive planned FM packets. For example, `/create-next-tasks 3` creates the three IDs after the highest existing `FM-NNN` packet. `STATUS.md` lists only the earliest dependency-ready
+packet under `Upcoming`; later batch members remain planned task packets until they become immediately next work.
+
+New tasks default to substantial vertical capabilities: keep the route, UI state, API/transport adaptation, necessary shared code, focused tests, and registry evidence together when they are necessary for one user-observable result. Split
+only at genuine dependencies, independent product capabilities, separate runtime boundaries, or unresolved contracts. Do not split a feature by source file or layer merely to create smaller tasks, and do not combine unrelated features
+simply to increase task size.
 
 ## Agent Autonomy And Escalation
 

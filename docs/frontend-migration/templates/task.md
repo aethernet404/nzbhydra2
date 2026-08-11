@@ -11,6 +11,10 @@ Blocks:
 
 One externally observable or architecturally complete result.
 
+## Boundary Rationale
+
+Explain why this is a substantial independently reviewable capability and why its included work must be delivered together. State the concrete dependency or product boundary that justifies every split from adjacent work.
+
 ## Files Allowed To Modify
 
 - Exact files or narrow path globs
