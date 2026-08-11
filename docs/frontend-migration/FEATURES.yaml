@@ -34,7 +34,8 @@ features:
     tests: [ tests/system/tests/smoke.spec.ts, tests/system/tests/search.spec.ts ]
     selectors: [ search-query, search-submit, search-category-control, "search-category-option-{{category.name}}", additional-query, autocomplete-popup, autocomplete-option ]
     target: core/ui-react/src/features/search
-    parity: inventoried
+    parity: partial
+    gaps: [ autocomplete/identifier refinement, selectable indexers, recent searches, guided tour ]
     task: FM-010
 
   - id: F-SEARCH-MEDIA
@@ -99,7 +100,7 @@ features:
     selectors: [ search-results, indexer-limit-warnings, search-results-summary, search-results-table, search-result-row, search-result-title ]
     target: core/ui-react/src/features/search/results
     parity: partial
-    gaps: [ no-result and all-failed states, partial failures, rejection details ]
+    gaps: [ autocomplete/identifier refinement, indexer-selection controls, search history, live progress, paging, sorting/filtering, grouping/selection, downloads ]
     task: FM-010
 
   - id: F-SEARCH-SORT-FILTER

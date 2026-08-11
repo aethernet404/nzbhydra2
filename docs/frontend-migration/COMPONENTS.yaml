@@ -96,7 +96,7 @@ components:
     target: core/ui-react/src/domain/categories
     consumers: [ F-SEARCH-FORM, F-CONFIG-CATEGORIES ]
     classification: shared_hydra
-    state: planned
+    state: partial
     task: FM-010
 
   - id: C-DOWNLOAD-ACTIONS
@@ -150,7 +150,7 @@ components:
     target: core/ui-react/src/features/search/results
     consumers: [ F-SEARCH-RESULTS, F-SEARCH-SORT-FILTER, F-SEARCH-GROUP-SELECTION, F-SEARCH-DOWNLOADS ]
     classification: feature_specific
-    state: planned
+    state: partial
     task: FM-010
 
   - id: C-SECRET-INPUT

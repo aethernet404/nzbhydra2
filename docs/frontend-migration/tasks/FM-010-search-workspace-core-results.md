@@ -1,6 +1,6 @@
 # FM-010: Search Workspace And Core Results
 
-Status: planned Owner:
+Status: done Owner: OpenCode
 Feature IDs: F-SEARCH-FORM, F-SEARCH-RESULTS Component IDs: C-CATEGORY-CATALOG, C-RESULT-TABLE API IDs: API-SEARCH-EXECUTE Depends on: FM-005, FM-006, FM-007, FM-009 Blocks: FM-011, FM-012, FM-013, FM-014
 
 ## Outcome
@@ -60,30 +60,49 @@ The agent may read and search the entire repository. Context To Read is mandator
 
 ## Handoff
 
-### Result
+### Outcome
 
-Record completed user-visible behavior and excluded parity work.
+- The React base-aware canonical `/` route now has basic search with bootstrap-validated categories, URL-backed criteria, configured preselected indexers, numeric request IDs, and `loadAll: false` requests through the shared transport.
+- Core results handle valid rows, empty, all-indexer failure, no picked indexers, request failure, quota warnings, rejected counts, malformed envelopes, and skipped malformed/titleless entries. Autocomplete, selectable indexers, history, live progress, paging, sorting/filtering, grouping, and downloads remain excluded.
 
-### Verification
+### Files Modified
 
-Use `templates/handoff.md`; record every command, result, scope check, and required SHA-256 verification basis.
+- `core/ui-react/{package.json,package-lock.json,src/router*,src/api/search*,src/domain/categories/catalog.ts,src/features/search/**}`, `tests/system/tests/search.spec.ts`, named registry records, `STATUS.md`, and this packet.
+- Scope confirmation: all task-attributable modifications are allowed; no pre-invocation changes or unexpected generated files exist; all task files are unstaged.
 
-### Decisions
+### Toolchain
 
-Record category/default, URL, and response-validation decisions.
+- Node `v26.6.0`; npm `11.18.0`; Maven `3.9.16`; Playwright Chromium.
 
-### Dependency/toolchain decisions
+### Verification Evidence
 
-Record dependencies, versions, and actual Node/npm versions, or `None`.
+| Working directory | Command | Result |
+|---|---|---|
+| `core/ui-react` | `npm ci && npm run typecheck && npm run lint && npm run format:check && npm run test -- --run && npm run build && npm run check:api && npm run validate:migration` | Passed after correction: 17 files / 42 tests. Non-failing Fast Refresh/RHF compiler and Vite chunk-size warnings only. `npm ci` reported 3 audit vulnerabilities (1 moderate, 2 high). |
+| repository root | `python3 misc/run_gui_systemtest.py --runtime wsl -- tests/search.spec.ts` | Passed: 6 tests, including React selected-shell mocked indexers, legacy selector comparison, and 390px overflow. |
+| repository root | `git diff --check` | Passed. |
+
+### Verification Basis
+
+- Baseline: `85b53a5d23ae8fb586db8530f67902975ccfafb1`. Quality covers all listed React implementation/tests; GUI covers `tests/system/tests/search.spec.ts` plus the search implementation; diff check covers all task changes. Completed after the correction implementation/test changes: yes. Post-verification changes are documentation-only.
+- SHA-256: `package.json 23996fa5ac74ce5562803a5764df525dc9a2f35cf7134264705a74372a5c4c8a`; `package-lock.json 9b3149fa2dc29de0c41154ba6728e1510b9174da71b5df53b4ff2d384c30ba74`; `router.tsx 35fe1208ff8c600350cc1571edd28ef0cfdbb99422449257238564da784a64cb`; `router.test.tsx 61cbafbe68258054d45e639257e658df1ca73f2b1a71aeea74efd3fd924848c2`; `api/search.ts eca90b41a3d9a5be9fb9d7a98ba457ed35fc66f62c5b98d22476b8ed3190b3a9`; `api/search.test.ts 7bbc1717dea2ea8dda42104ca5e6c073fc0b98f34f2e853ed16cb56ee43b6459`; `domain/categories/catalog.ts a76a337e3caaa6d7ce62961f784ac9ff07efdfa2dabef4a9922753c628e14bae`; `SearchPage.tsx 5ea2ceb6a12f0a31ac7ce1481839306bd3c66de9e6e07fc5c0d6b800699887fb`; `SearchPage.test.tsx ff83dcc2cf38ec2951bfba32c0b5e6eee5ef28e6a20d0822e022e4a4540c83f1`; `SearchWorkspace.tsx 91de140f3b9a42531c3ec79697f00b9e6eaedf07ba9b47eccddacccc1043a52b`; `SearchWorkspace.test.tsx c8338c9b8e1089e49f4381550e1d486dd48a70dfb112be787053326123bdb342`; `SearchResults.tsx 79e99ea9dd1f7bddcc1919f2e9f56d40860fd5a859d80ff00bbea43b5e209ffe`; `SearchResults.test.tsx 628ac96ade16b2ba51cada6b0e3799f275d2655b7400ec79ee7ecf5fddfd7392`; `tests/system/tests/search.spec.ts 326cef32ce8fcc3011cb130e894279fee0f2a2b97a8ad06a6dc53b6ab033c948`.
+
+### Dependency Decisions
+
+- Runtime: exact `react-hook-form 7.85.0` for form state and `zod 4.4.3` for validation. Development: None.
 
 ### Assumptions
 
-Record material contract assumptions, or `None`.
+- Safe-config `preselect` is the basic-search configured selection; absent/invalid configuration produces no selectable indexers and no request.
 
-### Unresolved issues
+### Temporary Exceptions And Debt
 
-Record intentionally deferred or blocked work, or `None`.
+- None.
 
-### Follow-up
+### Registry And Documentation Updates
 
-Record bounded follow-up proposals, or `None`.
+- Updated only `F-SEARCH-FORM`, `F-SEARCH-RESULTS`, `C-CATEGORY-CATALOG`, `C-RESULT-TABLE`, and `API-SEARCH-EXECUTE` with concrete targets/tests.
+
+### Follow-Up Work
+
+- FM-011 through FM-014 retain sorting/filtering, grouping/selection, downloads, and live progress.
