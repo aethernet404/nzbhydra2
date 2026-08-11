@@ -34,6 +34,11 @@
 - Runtime dependencies added, removed, or changed with justification, or `None`.
 - Development dependencies added, removed, or changed with justification, or `None`.
 
+### Architecture Decisions
+
+- Accepted ADRs followed and their task-specific application, or `None`.
+- `ADR REQUIRED` proposal triggered during this task, with its ID and blocking/acceptance status, or `None`.
+
 ### Assumptions
 
 - Material assumptions made from repository evidence, or `None`.

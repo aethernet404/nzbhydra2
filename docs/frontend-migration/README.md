@@ -15,15 +15,16 @@ Agents editing `core/ui-react` also read `/core/ui-react/AGENTS.md`.
 
 ## Sources Of Truth
 
-| Information                                | Authoritative file   |
-|--------------------------------------------|----------------------|
-| Durable product and deployment constraints | `CONTEXT.md`         |
-| Active and next work                       | `STATUS.md`          |
-| User-visible parity                        | `FEATURES.yaml`      |
-| Shared target components                   | `COMPONENTS.yaml`    |
-| Frontend API adoption                      | `APIS.yaml`          |
-| Consequential decisions                    | `decisions/ADR-*.md` |
-| Task scope, acceptance, and handoff        | `tasks/FM-*.md`      |
+| Information                                | Authoritative file    |
+|--------------------------------------------|-----------------------|
+| Durable product and deployment constraints | `CONTEXT.md`          |
+| Active and next work                       | `STATUS.md`           |
+| User-visible parity                        | `FEATURES.yaml`       |
+| Shared target components                   | `COMPONENTS.yaml`     |
+| Frontend API adoption                      | `APIS.yaml`           |
+| Consequential decisions                    | `decisions/ADR-*.md`  |
+| ADR lifecycle and proposal rules           | `decisions/README.md` |
+| Task scope, acceptance, and handoff        | `tasks/FM-*.md`       |
 
 Do not duplicate an authoritative fact in another document. Link its stable ID instead.
 
@@ -40,6 +41,9 @@ Task states are `planned`, `ready`, `in_progress`, `review`, `blocked`, and `don
 7. The agent updates affected registries and marks the task `review` in the same change.
 8. A fresh agent reviews the change against the task and linked feature records.
 9. The coordinator marks the task `done` after review findings are resolved.
+
+When an agent encounters an unresolved fundamental decision, it reports `ADR REQUIRED`. The coordinator automatically has a fresh proposer draft an evidence-based ADR and presents it to the human. The task remains blocked until the human
+explicitly accepts or rejects the proposal; after acceptance, the task designer links the ADR and refines the affected task before work resumes. See `decisions/README.md`.
 
 Only the migration task designer creates or refines task packets and dependencies. The coordinator promotes and completes task lifecycle states. Implementation agents add a follow-up proposal to their handoff instead of expanding scope.
 
@@ -62,7 +66,7 @@ Stop and escalate only when:
 - requirements or accepted decisions genuinely conflict;
 - satisfying the task requires modifying a file outside `Files Allowed To Modify`;
 - unavailable external access, credentials, services, or user action are required;
-- a consequential architectural choice is not covered by an ADR;
+- a consequential architectural choice is not covered by an ADR; report `ADR REQUIRED` with the decision question, evidence, viable options, affected work, and recommendation so the coordinator can start the proposal process;
 - unexpected concurrent changes directly conflict with the task's implementation.
 
 Do not escalate ordinary naming, file organization, test arrangement, or tooling details that have a clear conventional answer. When escalating, state the blocker, evidence, and smallest viable options. Keep the task `in_progress` or mark

@@ -28,6 +28,9 @@ non-verification handoff sections before expensive verification where practical.
 that basis; if you do, rerun every affected command and replace its evidence. Report a genuine `BLOCKED` condition only for an architecture, contract, prohibited-write, destructive-action, concurrent-change, or unavailable-infrastructure
 issue that cannot be resolved conventionally.
 
+When an unresolved fundamental choice has materially different alternatives for a shared architecture or runtime boundary, API/authentication/transport contract, rollout/deployment, persistence/security, or project-wide quality strategy, do
+not select one. Report `BLOCKED: ADR REQUIRED` with the decision question, repository evidence, viable options, affected task/registry IDs, and recommendation. Continue to make task-local and already-ADR-permitted choices autonomously.
+
 Do not review your own implementation and do not commit or push unless repository instructions explicitly authorize it.
 
 ## Git Attribution

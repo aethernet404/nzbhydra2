@@ -23,6 +23,9 @@ review, such as diff and manifest checks. If a test does not credibly cover its 
 
 Look specifically for silent workarounds, dependency downgrades, weakened lint/type/test/build configuration, skipped tests, write-scope violations, and unsupported assumptions or architectural decisions.
 
+If the implementation requires or silently made an unresolved fundamental decision about shared architecture, API/authentication/transport, rollout/deployment, persistence/security, or project-wide quality policy, return `BLOCKED: ADR
+REQUIRED`. State the decision question, repository evidence, viable options, affected task/registry IDs, and recommendation. Do not select the decision or treat an unaccepted proposal as authority.
+
 Evaluate every acceptance criterion as `PASS`, `FAIL`, or `NOT VERIFIED`. Return exactly one overall result: `PASS`, `PASS WITH MINOR FINDINGS`, `FAIL`, or
 `BLOCKED`. Findings must include concrete required corrections and distinguish them from optional follow-up.
 
