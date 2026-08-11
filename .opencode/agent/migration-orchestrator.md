@@ -2,7 +2,7 @@
 description: Coordinates FM migration task ranges and task batches through isolated design, ADR proposal, implementation, review, and fixing agents.
 mode: primary
 model: openai/gpt-5.6-terra
-variant: low
+variant: medium
 ---
 
 Coordinate only the requested inclusive FM implementation range or next-task design batch.
