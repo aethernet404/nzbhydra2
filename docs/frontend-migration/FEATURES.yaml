@@ -35,8 +35,8 @@ features:
     selectors: [ search-query, search-submit, search-category-control, "search-category-option-{{category.name}}", additional-query, autocomplete-popup, autocomplete-option ]
     target: core/ui-react/src/features/search
     parity: partial
-    gaps: [ autocomplete/identifier refinement, selectable indexers, recent searches, guided tour ]
-    task: FM-010
+    gaps: [ selectable indexers, recent searches, guided tour ]
+    task: FM-025
 
   - id: F-SEARCH-MEDIA
     name: Movie and TV autocomplete, identifiers, title refinement, season, and episode
@@ -48,8 +48,8 @@ features:
     selectors: [ additional-query, autocomplete-popup, autocomplete-option ]
     target: core/ui-react/src/features/search
     parity: partial
-    gaps: [ TV autocomplete, season and episode, IMDb, TVDB, TVMaze, and non-TMDB identifier searches ]
-    task: FM-015
+    gaps: [ ]
+    task: FM-025
 
   - id: F-SEARCH-INDEXERS
     name: Indexer selection by individual source, type, group, and preselection

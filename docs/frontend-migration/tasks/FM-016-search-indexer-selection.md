@@ -1,7 +1,7 @@
 # FM-016: Search Indexer Selection
 
 Status: planned Owner:
-Feature IDs: F-SEARCH-FORM, F-SEARCH-INDEXERS Component IDs: C-CATEGORY-CATALOG API IDs: API-SEARCH-EXECUTE Depends on: FM-015 Blocks: FM-017
+Feature IDs: F-SEARCH-FORM, F-SEARCH-INDEXERS Component IDs: C-CATEGORY-CATALOG API IDs: API-SEARCH-EXECUTE Depends on: FM-025 Blocks: FM-017
 
 ## Outcome
 
