@@ -10,6 +10,26 @@ import org.nzbhydra.config.EmptyStringToNullDeserializer;
 import org.nzbhydra.config.EmptyStringToNullSerializer;
 import org.nzbhydra.mapping.newznab.NewznabResponse;
 import org.nzbhydra.mapping.newznab.OutputType;
+import org.nzbhydra.mapping.newznab.xml.NewznabAttribute;
+import org.nzbhydra.mapping.newznab.xml.NewznabXmlApilimits;
+import org.nzbhydra.mapping.newznab.xml.NewznabXmlChannel;
+import org.nzbhydra.mapping.newznab.xml.NewznabXmlEnclosure;
+import org.nzbhydra.mapping.newznab.xml.NewznabXmlError;
+import org.nzbhydra.mapping.newznab.xml.NewznabXmlGuid;
+import org.nzbhydra.mapping.newznab.xml.NewznabXmlItem;
+import org.nzbhydra.mapping.newznab.xml.NewznabXmlResponse;
+import org.nzbhydra.mapping.newznab.xml.NewznabXmlRoot;
+import org.nzbhydra.mapping.newznab.xml.Xml;
+import org.nzbhydra.mapping.newznab.xml.caps.CapsXmlCategories;
+import org.nzbhydra.mapping.newznab.xml.caps.CapsXmlCategory;
+import org.nzbhydra.mapping.newznab.xml.caps.CapsXmlLimits;
+import org.nzbhydra.mapping.newznab.xml.caps.CapsXmlRetention;
+import org.nzbhydra.mapping.newznab.xml.caps.CapsXmlRoot;
+import org.nzbhydra.mapping.newznab.xml.caps.CapsXmlSearch;
+import org.nzbhydra.mapping.newznab.xml.caps.CapsXmlSearching;
+import org.nzbhydra.mapping.newznab.xml.caps.CapsXmlServer;
+import org.nzbhydra.mapping.newznab.xml.caps.jackett.JacketCapsXmlIndexer;
+import org.nzbhydra.mapping.newznab.xml.caps.jackett.JacketCapsXmlRoot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,30 +99,30 @@ public class WebConfiguration extends WebMvcConfigurationSupport {
             }
         }
         registry.addResourceHandler("/static/**")
-                .addResourceLocations(locations)
-                .setCacheControl(CacheControl.noCache())
-                .resourceChain(false);
+            .addResourceLocations(locations)
+            .setCacheControl(CacheControl.noCache())
+            .resourceChain(false);
         File additionalStatic = new File(NzbHydra.getDataFolder(), "additionalStatic");
         if (additionalStatic.exists()) {
             logger.warn("Files in the data/additionalStatic folder will be exposed");
         }
         registry.addResourceHandler("/additionalStatic/**")
-                .addResourceLocations(additionalStatic.toURI().toURL().toString())
-                .setCacheControl(CacheControl.noCache())
-                .resourceChain(false);
+            .addResourceLocations(additionalStatic.toURI().toURL().toString())
+            .setCacheControl(CacheControl.noCache())
+            .resourceChain(false);
 
         registry.addResourceHandler("/favicon.*")
-                .addResourceLocations("classpath:/static/img/")
-                .setCacheControl(CacheControl.noCache())
-                .resourceChain(false);
+            .addResourceLocations("classpath:/static/img/")
+            .setCacheControl(CacheControl.noCache())
+            .resourceChain(false);
 
         //Otherwise swagger is not loaded using /swagger-ui/index.html
         registry.addResourceHandler("/swagger-ui/**")
-                // Must match the dependency for swagger-ui
-                .addResourceLocations("classpath:/META-INF/resources/webjars/swagger-ui/4.10.3/");
+            // Must match the dependency for swagger-ui
+            .addResourceLocations("classpath:/META-INF/resources/webjars/swagger-ui/4.10.3/");
 
         registry.addResourceHandler("/bower_components/bootstrap-less/fonts/**")
-                .addResourceLocations("classpath:/static/fonts/");
+            .addResourceLocations("classpath:/static/fonts/");
 
         registry.setOrder(0);
     }
@@ -119,7 +139,7 @@ public class WebConfiguration extends WebMvcConfigurationSupport {
                                                                      @Nullable ApiVersionStrategy mvcApiVersionStrategy,
                                                                      FormattingConversionService mvcConversionService, ResourceUrlProvider mvcResourceUrlProvider) {
         RequestMappingHandlerMapping handler = super.requestMappingHandlerMapping(mvcContentNegotiationManager,
-                mvcApiVersionStrategy, mvcConversionService, mvcResourceUrlProvider);
+            mvcApiVersionStrategy, mvcConversionService, mvcResourceUrlProvider);
         handler.setOrder(1);
         return handler;
     }
@@ -154,7 +174,28 @@ public class WebConfiguration extends WebMvcConfigurationSupport {
         Map<String, Boolean> map = new HashMap<>();
         map.put(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
         marshaller.setMarshallerProperties(map);
-        marshaller.setPackagesToScan("org.nzbhydra");
+        // Native images do not expose classpath directories for JAXB package scanning.
+        marshaller.setClassesToBeBound(
+            NewznabAttribute.class,
+            NewznabXmlApilimits.class,
+            NewznabXmlChannel.class,
+            NewznabXmlEnclosure.class,
+            NewznabXmlError.class,
+            NewznabXmlGuid.class,
+            NewznabXmlItem.class,
+            NewznabXmlResponse.class,
+            NewznabXmlRoot.class,
+            JacketCapsXmlIndexer.class,
+            JacketCapsXmlRoot.class,
+            CapsXmlCategories.class,
+            CapsXmlCategory.class,
+            CapsXmlLimits.class,
+            CapsXmlServer.class,
+            CapsXmlSearch.class,
+            CapsXmlRoot.class,
+            CapsXmlRetention.class,
+            CapsXmlSearching.class,
+            Xml.class);
         return marshaller;
     }
 
@@ -169,9 +210,9 @@ public class WebConfiguration extends WebMvcConfigurationSupport {
                 simpleModule.addDeserializer(String.class, new EmptyStringToNullDeserializer());
                 simpleModule.addSerializer(String.class, new EmptyStringToNullSerializer());
                 JsonMapper mapper = jacksonConverter.getMapper().rebuild()
-                        .addModule(simpleModule)
-                        .enable(SerializationFeature.INDENT_OUTPUT)
-                        .build();
+                    .addModule(simpleModule)
+                    .enable(SerializationFeature.INDENT_OUTPUT)
+                    .build();
                 converters.set(i, new JacksonJsonHttpMessageConverter(mapper));
             }
         }
@@ -183,7 +224,7 @@ public class WebConfiguration extends WebMvcConfigurationSupport {
 
         private final Jaxb2Marshaller marshaller;
         private final JacksonJsonHttpMessageConverter jacksonConverter = new JacksonJsonHttpMessageConverter(
-                JsonMapper.builder().enable(SerializationFeature.INDENT_OUTPUT).build());
+            JsonMapper.builder().enable(SerializationFeature.INDENT_OUTPUT).build());
 
 
         public NewznabAndTorznabResponseNamespaceFixer(Jaxb2Marshaller marshaller) {
