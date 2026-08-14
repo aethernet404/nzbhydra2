@@ -133,7 +133,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--gui-tests",
         action="store_true",
-        help="run the Playwright GUI tests in WSL while the managed services are running",
+        help="run the Playwright GUI tests while the managed services are running",
     )
     parser.add_argument(
         "--skip-system-tests",
