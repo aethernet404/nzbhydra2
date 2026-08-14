@@ -1,6 +1,5 @@
 package org.nzbhydra.web;
 
-import jakarta.xml.bind.Marshaller;
 import lombok.SneakyThrows;
 import org.jspecify.annotations.Nullable;
 import org.nzbhydra.NzbHydra;
@@ -10,26 +9,6 @@ import org.nzbhydra.config.EmptyStringToNullDeserializer;
 import org.nzbhydra.config.EmptyStringToNullSerializer;
 import org.nzbhydra.mapping.newznab.NewznabResponse;
 import org.nzbhydra.mapping.newznab.OutputType;
-import org.nzbhydra.mapping.newznab.xml.NewznabAttribute;
-import org.nzbhydra.mapping.newznab.xml.NewznabXmlApilimits;
-import org.nzbhydra.mapping.newznab.xml.NewznabXmlChannel;
-import org.nzbhydra.mapping.newznab.xml.NewznabXmlEnclosure;
-import org.nzbhydra.mapping.newznab.xml.NewznabXmlError;
-import org.nzbhydra.mapping.newznab.xml.NewznabXmlGuid;
-import org.nzbhydra.mapping.newznab.xml.NewznabXmlItem;
-import org.nzbhydra.mapping.newznab.xml.NewznabXmlResponse;
-import org.nzbhydra.mapping.newznab.xml.NewznabXmlRoot;
-import org.nzbhydra.mapping.newznab.xml.Xml;
-import org.nzbhydra.mapping.newznab.xml.caps.CapsXmlCategories;
-import org.nzbhydra.mapping.newznab.xml.caps.CapsXmlCategory;
-import org.nzbhydra.mapping.newznab.xml.caps.CapsXmlLimits;
-import org.nzbhydra.mapping.newznab.xml.caps.CapsXmlRetention;
-import org.nzbhydra.mapping.newznab.xml.caps.CapsXmlRoot;
-import org.nzbhydra.mapping.newznab.xml.caps.CapsXmlSearch;
-import org.nzbhydra.mapping.newznab.xml.caps.CapsXmlSearching;
-import org.nzbhydra.mapping.newznab.xml.caps.CapsXmlServer;
-import org.nzbhydra.mapping.newznab.xml.caps.jackett.JacketCapsXmlIndexer;
-import org.nzbhydra.mapping.newznab.xml.caps.jackett.JacketCapsXmlRoot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +22,7 @@ import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.HttpMessageConverters;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
@@ -67,9 +47,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @SuppressWarnings("unchecked")
 @Configuration(proxyBeanMethods = false)
@@ -77,6 +55,9 @@ public class WebConfiguration extends WebMvcConfigurationSupport {
 
     @Autowired
     private Interceptor interceptor;
+
+    @Autowired
+    private Jaxb2Marshaller marshaller;
 
     private static final Logger logger = LoggerFactory.getLogger(WebConfiguration.class);
 
@@ -166,57 +147,20 @@ public class WebConfiguration extends WebMvcConfigurationSupport {
     }
 
     /**
-     * Enable pretty printing of returned XML
-     */
-    @Bean
-    public Jaxb2Marshaller marshaller() {
-        Jaxb2Marshaller marshaller = new Jaxb2Marshaller();
-        Map<String, Boolean> map = new HashMap<>();
-        map.put(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
-        marshaller.setMarshallerProperties(map);
-        // Native images do not expose classpath directories for JAXB package scanning.
-        marshaller.setClassesToBeBound(
-            NewznabAttribute.class,
-            NewznabXmlApilimits.class,
-            NewznabXmlChannel.class,
-            NewznabXmlEnclosure.class,
-            NewznabXmlError.class,
-            NewznabXmlGuid.class,
-            NewznabXmlItem.class,
-            NewznabXmlResponse.class,
-            NewznabXmlRoot.class,
-            JacketCapsXmlIndexer.class,
-            JacketCapsXmlRoot.class,
-            CapsXmlCategories.class,
-            CapsXmlCategory.class,
-            CapsXmlLimits.class,
-            CapsXmlServer.class,
-            CapsXmlSearch.class,
-            CapsXmlRoot.class,
-            CapsXmlRetention.class,
-            CapsXmlSearching.class,
-            Xml.class);
-        return marshaller;
-    }
-
-    /**
      * Enable pretty printing of returned JSON
      */
     @Override
-    protected void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
-        for (int i = 0; i < converters.size(); i++) {
-            if (converters.get(i) instanceof JacksonJsonHttpMessageConverter jacksonConverter) {
-                SimpleModule simpleModule = new SimpleModule();
-                simpleModule.addDeserializer(String.class, new EmptyStringToNullDeserializer());
-                simpleModule.addSerializer(String.class, new EmptyStringToNullSerializer());
-                JsonMapper mapper = jacksonConverter.getMapper().rebuild()
-                    .addModule(simpleModule)
-                    .enable(SerializationFeature.INDENT_OUTPUT)
-                    .build();
-                converters.set(i, new JacksonJsonHttpMessageConverter(mapper));
-            }
-        }
-        converters.add(0, new NewznabAndTorznabResponseNamespaceFixer(marshaller()));
+    protected void configureMessageConverters(HttpMessageConverters.ServerBuilder builder) {
+        SimpleModule simpleModule = new SimpleModule();
+        simpleModule.addDeserializer(String.class, new EmptyStringToNullDeserializer());
+        simpleModule.addSerializer(String.class, new EmptyStringToNullSerializer());
+        JsonMapper mapper = JsonMapper.builder()
+            .addModule(simpleModule)
+            .enable(SerializationFeature.INDENT_OUTPUT)
+            .build();
+        builder.registerDefaults()
+            .withJsonConverter(new JacksonJsonHttpMessageConverter(mapper))
+            .addCustomConverter(new NewznabAndTorznabResponseNamespaceFixer(marshaller));
     }
 
 
