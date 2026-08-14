@@ -1110,7 +1110,7 @@ def run_locked(args: argparse.Namespace, graalvm_environment: dict[str, str]) ->
 
 def run() -> int:
     args = parse_args()
-    graalvm_environment = get_graalvm_environment()
+    graalvm_environment = os.environ.copy() if args.skip_build else get_graalvm_environment()
     if args.startup_timeout <= 0:
         raise RuntimeError("--startup-timeout must be greater than zero")
     if args.skip_system_tests and not args.gui_tests:
