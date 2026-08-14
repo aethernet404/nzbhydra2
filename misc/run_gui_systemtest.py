@@ -430,7 +430,7 @@ def start_local_services(
             "directstart",
             "--nobrowser",
             "--host",
-            "127.0.0.1",
+            "0.0.0.0",
             "--datafolder",
             str(data_dir),
         ]
@@ -513,8 +513,18 @@ def ensure_systemtest_network() -> None:
         raise RuntimeError("Unable to create Docker network systemtest")
 
 
+def get_container_host_address() -> str:
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as probe:
+        try:
+            probe.connect(("8.8.8.8", 80))
+            return probe.getsockname()[0]
+        except OSError as error:
+            raise RuntimeError("Unable to determine an address reachable by Docker containers") from error
+
+
 def start_supporting_services(timeout: float) -> list[str]:
     ensure_systemtest_network()
+    os.environ["SYSTEMTEST_HOST_ADDRESS"] = get_container_host_address()
     services = [
         ("sonarr", f"http://127.0.0.1:{SONARR_PORT}/api/v3/system/status"),
         ("radarr", f"http://127.0.0.1:{RADARR_PORT}/api/v3/system/status"),
