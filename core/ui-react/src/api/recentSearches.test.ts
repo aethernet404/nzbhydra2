@@ -10,6 +10,13 @@ describe("getRecentSearches", () => {
                 JSON.stringify([
                     {
                         categoryName: "Movies",
+                        source: "API",
+                        searchType: null,
+                        query: null,
+                        title: null,
+                        season: null,
+                        episode: null,
+                        author: null,
                         minAge: 1,
                         maxAge: 2,
                         minSize: 3,
@@ -27,6 +34,7 @@ describe("getRecentSearches", () => {
         ).resolves.toEqual([
             {
                 categoryName: "Movies",
+                source: "API",
                 identifiers: [],
                 minAge: 1,
                 maxAge: 2,

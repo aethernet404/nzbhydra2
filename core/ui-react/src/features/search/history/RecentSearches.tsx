@@ -78,6 +78,7 @@ function describeSearch(search: RecentSearch): string {
         .join(", ");
     return [
         `Category: ${search.categoryName}`,
+        `Source: ${describeSource(search.source)}`,
         search.query ? `Query: ${search.query}` : undefined,
         search.title ? `Title: ${search.title}` : undefined,
         identifiers || undefined,
@@ -87,4 +88,12 @@ function describeSearch(search: RecentSearch): string {
     ]
         .filter((value): value is string => value !== undefined)
         .join(", ");
+}
+
+function describeSource(source: RecentSearch["source"]): string {
+    return source === "INTERNAL"
+        ? "Internal"
+        : source === "API"
+          ? "API"
+          : "Unknown";
 }

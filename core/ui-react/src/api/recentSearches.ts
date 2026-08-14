@@ -5,6 +5,7 @@ import {ApiTransport} from "./transport";
 
 export type RecentSearch = {
     categoryName: string;
+    source?: "INTERNAL" | "API";
     searchType?: "BOOK" | "MOVIE" | "MUSIC" | "SEARCH" | "TVSEARCH";
     query?: string;
     title?: string;
@@ -23,14 +24,35 @@ type RecentSearchResponse = components["schemas"]["SearchEntityTO"][];
 
 const recentSearchSchema = z.object({
     categoryName: z.string().min(1),
+    source: z
+        .enum(["INTERNAL", "API"])
+        .nullish()
+        .transform((value) => value ?? undefined),
     searchType: z
         .enum(["BOOK", "MOVIE", "MUSIC", "SEARCH", "TVSEARCH"])
-        .optional(),
-    query: z.string().optional(),
-    title: z.string().optional(),
-    season: z.number().int().optional(),
-    episode: z.string().optional(),
-    author: z.string().optional(),
+        .nullish()
+        .transform((value) => value ?? undefined),
+    query: z
+        .string()
+        .nullish()
+        .transform((value) => value ?? undefined),
+    title: z
+        .string()
+        .nullish()
+        .transform((value) => value ?? undefined),
+    season: z
+        .number()
+        .int()
+        .nullish()
+        .transform((value) => value ?? undefined),
+    episode: z
+        .string()
+        .nullish()
+        .transform((value) => value ?? undefined),
+    author: z
+        .string()
+        .nullish()
+        .transform((value) => value ?? undefined),
     identifiers: z
         .array(
             z.object({
@@ -39,11 +61,30 @@ const recentSearchSchema = z.object({
             }),
         )
         .default([]),
-    minAge: z.number().int().optional(),
-    maxAge: z.number().int().optional(),
-    minSize: z.number().int().optional(),
-    maxSize: z.number().int().optional(),
-    selectedIndexers: z.array(z.string().min(1)).optional(),
+    minAge: z
+        .number()
+        .int()
+        .nullish()
+        .transform((value) => value ?? undefined),
+    maxAge: z
+        .number()
+        .int()
+        .nullish()
+        .transform((value) => value ?? undefined),
+    minSize: z
+        .number()
+        .int()
+        .nullish()
+        .transform((value) => value ?? undefined),
+    maxSize: z
+        .number()
+        .int()
+        .nullish()
+        .transform((value) => value ?? undefined),
+    selectedIndexers: z
+        .array(z.string().min(1))
+        .nullish()
+        .transform((value) => value ?? undefined),
 });
 
 export async function getRecentSearches(

@@ -10,7 +10,7 @@ None.
 
 ## Blocked
 
-- FM-017: Recent Search Reuse — GUI verification fails: the recent-history endpoint responds 200 after the configured search, but the expected newly persisted entry is absent, so the React Refill action is unavailable.
+None.
 
 ## Upcoming
 

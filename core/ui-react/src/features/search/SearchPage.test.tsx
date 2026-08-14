@@ -246,6 +246,7 @@ describe("SearchPage", () => {
                                 ? [
                                       {
                                           categoryName: "All",
+                                          source: "INTERNAL",
                                           query: "recent query",
                                           minAge: 1,
                                           maxAge: 2,
@@ -275,6 +276,7 @@ describe("SearchPage", () => {
         );
 
         await screen.findByRole("button", {name: "Refill"});
+        expect(screen.getByText(/Source: Internal/)).toBeVisible();
         fireEvent.click(screen.getByRole("button", {name: "Refill"}));
         expect(screen.getByLabelText("Search")).toHaveValue("recent query");
         expect(screen.getByLabelText("Minimum age (days)")).toHaveValue(1);
