@@ -19,6 +19,7 @@ import org.nzbhydra.config.SearchSource;
 import org.nzbhydra.config.SearchSourceRestriction;
 import org.nzbhydra.config.indexer.IndexerConfig;
 import org.nzbhydra.config.indexer.SearchModuleType;
+import org.nzbhydra.config.searching.SearchType;
 import org.nzbhydra.logging.LoggingMarkers;
 import org.nzbhydra.searching.dtoseventsenums.SearchResultItem;
 import org.nzbhydra.searching.searchrequests.SearchRequest;
@@ -48,6 +49,10 @@ public class SearchResultAcceptor {
 
     private static final Pattern TITLE_PATTERN = Pattern.compile("(\\w[\\w']*\\w|\\w)");
 
+    private static final Set<String> RELEVANCE_STOPWORDS = Set.of(
+        "the", "a", "an", "and", "or", "of", "in", "on", "at", "to", "for", "part"
+    );
+
     private Map<String, List<String>> titleWordCache = new ConcurrentHashMap<>();
 
     private final ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
@@ -71,6 +76,9 @@ public class SearchResultAcceptor {
         }
         for (SearchResultItem item : itemsWithoutActualDuplicates) {
             if (!checkForNeededAttributesSuccessfullyMapped(reasonsForRejection, item)) {
+                continue;
+            }
+            if (!checkForQueryRelevance(searchRequest, reasonsForRejection, item)) {
                 continue;
             }
             if (!checkForPassword(reasonsForRejection, item)) {
@@ -316,15 +324,49 @@ public class SearchResultAcceptor {
     }
 
     private synchronized List<String> getTitleWords(SearchResultItem item) {
-        return titleWordCache.computeIfAbsent(item.getTitle(), s -> {
-            List<String> titleWords = new ArrayList<>();
-            Matcher matcher = TITLE_PATTERN.matcher(item.getTitle().toLowerCase());
-            while (matcher.find()) {
-                titleWords.add(matcher.group().toLowerCase());
-            }
-            return titleWords;
-        });
+        return titleWordCache.computeIfAbsent(item.getTitle(), s -> tokenize(item.getTitle()));
+    }
 
+    private List<String> tokenize(String text) {
+        List<String> words = new ArrayList<>();
+        Matcher matcher = TITLE_PATTERN.matcher(text.toLowerCase());
+        while (matcher.find()) {
+            words.add(matcher.group().toLowerCase());
+        }
+        return words;
+    }
+
+    /**
+     * Rejects results whose title doesn't actually contain most of the significant words from the
+     * search query. Indexers (especially Jackett/Torznab trackers) frequently do loose, partial-text
+     * matching server-side and return results that merely share a word or two with the query (e.g.
+     * searching "The Bourne Identity" returning "The Bourne Legacy"). Only applied to title-based
+     * media searches (movie/TV, or a query auto-generated from a resolved title) so free-text/keyword
+     * searches aren't affected.
+     */
+    protected boolean checkForQueryRelevance(SearchRequest searchRequest, Multiset<String> reasonsForRejection, SearchResultItem item) {
+        boolean isTitleSearch = searchRequest.getSearchType() == SearchType.MOVIE
+            || searchRequest.getSearchType() == SearchType.TVSEARCH
+            || searchRequest.getInternalData().isQueryGenerated();
+        if (!isTitleSearch || searchRequest.getQuery().isEmpty()) {
+            return true;
+        }
+        List<String> queryWords = tokenize(searchRequest.getQuery().get()).stream()
+            .filter(word -> word.length() > 2 && !RELEVANCE_STOPWORDS.contains(word))
+            .distinct()
+            .toList();
+        if (queryWords.isEmpty()) {
+            return true;
+        }
+        List<String> titleWords = getTitleWords(item);
+        long missingCount = queryWords.stream().filter(word -> !titleWords.contains(word)).count();
+        int allowedMisses = queryWords.size() >= 4 ? 1 : 0;
+        if (missingCount > allowedMisses) {
+            logger.debug(LoggingMarkers.RESULT_ACCEPTOR, "Title '{}' doesn't contain enough of the significant words from query '{}'", item.getTitle(), searchRequest.getQuery().get());
+            reasonsForRejection.add("Title doesn't match search query closely enough");
+            return false;
+        }
+        return true;
     }
 
     protected boolean checkForForbiddenWords(IndexerConfig indexerConfig, Multiset<String> reasonsForRejection, List<String> forbiddenWords, SearchResultItem item, String source) {

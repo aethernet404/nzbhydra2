@@ -1,11 +1,17 @@
 .panel {
   border-color: @navbar-default-border;
+  box-shadow: @shadow-sm;
+  transition: box-shadow @transition-fast;
 }
 
 .panel-default > .panel-heading {
   background-color: @navbar-default-bg;
+  border-top-left-radius: @border-radius-large;
+  border-top-right-radius: @border-radius-large;
 
   h3 {
     color: @navbar-inverse-bg;
+    font-weight: 500;
+    letter-spacing: .2px;
   }
 }

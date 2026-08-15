@@ -1,5 +1,13 @@
+.btn {
+  transition: background-color @transition-fast, border-color @transition-fast, box-shadow @transition-fast, transform @transition-fast;
+}
+
 .btn:focus {
   outline: none;
+}
+
+.btn:not(.disabled):not(:disabled):active {
+  transform: translateY(1px);
 }
 
 .btn-default:active {

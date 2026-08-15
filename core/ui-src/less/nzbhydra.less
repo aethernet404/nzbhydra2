@@ -6,8 +6,9 @@
 @headings-font-weight: 400;
 @line-height-large: 1.33;
 @font-size-base: 13px;
-@border-radius-large: 5px;
-@border-radius-small: 2px;
+@border-radius-base: 6px;
+@border-radius-large: 8px;
+@border-radius-small: 4px;
 @zindex-popover: 1010;
 @zindex-tooltip: 1030;
 @container-tablet: ((720px + @grid-gutter-width));
@@ -17,10 +18,20 @@
 @badge-font-weight: normal;
 @breadcrumb-separator: ">";
 
+// Modern refresh: shared shadow/elevation and motion tokens, used across
+// panels/cards, buttons and the navbar so all four color themes pick them
+// up consistently without needing per-theme overrides.
+@shadow-sm: 0 1px 2px rgba(0, 0, 0, .08);
+@shadow-md: 0 2px 8px rgba(0, 0, 0, .1);
+@shadow-lg: 0 4px 16px rgba(0, 0, 0, .14);
+@transition-fast: 150ms ease;
+
 html,
 body {
   height: 100%;
   background: @body-bg;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 @import "partials/utilities.less";

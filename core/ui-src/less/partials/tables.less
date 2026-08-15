@@ -16,10 +16,20 @@
 
 .search-results-table {
   border: 1px solid @brand-primary;
+  border-radius: @border-radius-large;
+  box-shadow: @shadow-sm;
   display: table;
   width: 100%;
   background-color: @table-bg;
   border-collapse: separate;
+}
+
+.search-results-table > tbody > tr {
+  transition: background-color @transition-fast;
+}
+
+.search-results-table > tbody > tr:hover {
+  background-color: @table-bg-hover;
 }
 
 .search-results-table > tbody:nth-child(3) > tr > td {
